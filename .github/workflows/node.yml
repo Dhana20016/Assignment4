@@ -1,15 +1,39 @@
 name: Node.js CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm install
-      - run: npm test || echo "No test script"
-      - run: npx eslint . || echo "Linting errors"
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: |
+          if [ -f package.json ] && grep -q '"test"' package.json; then
+            npm test
+          else
+            echo "No test script defined"
+          fi
+
+      - name: Lint code with ESLint
+        run: |
+          if npx eslint .; then
+            echo "Linting passed"
+          else
+            echo "Linting errors detected"
+          fi
